@@ -1,0 +1,52 @@
+# Serogroups
+serogroup_markers = [
+  {gene = "rfbV", name = "O1"},
+  {gene = "wbfZ", name = "O139"}
+]
+
+# Biotypes
+# Highlight if inexact
+biotype_markers = [
+  {gene = "VC2346", name = "El Tor"},
+  {gene = "ctxB1", name = "Classical"},
+  {gene = "ctxB3", name = "O1"},
+  {gene = "ctxB7", name = "O1 Hawaii"},
+  {gene = "rstR", name = "O139 Pathogenic"}
+]
+
+# Type could be a GO term, e.g. GO:0090729 = Toxin activity
+# 80% identity
+virulence_genes = [
+ {name = "ctxA", type = "Toxin"},
+ # Use ctxB3 sequence
+ {name = "ctxB", type = "Toxin"},
+ {name = "zot", type = "Toxin"},
+ {name = "ace", type = "Toxin"},
+ {name = "hlyA", type = "Hemolysin"},
+ {name = "ompU", type = "Adhesion"},
+ {name = "toxR", type = "Regulator"},
+ {name = "makA", type = "Toxin"},
+ {name = "rpoS", type = "Fitness"}
+]
+
+# Virulence
+[virulence_sets]
+[virulence_sets.tcp]
+name = "TCP cluster"
+type = "colonisation"
+genes = ["tcpA", "tcpB", "tcpC", "tcpD", "tcpE", "tcpF", "tcpH", "tcpI", "tcpJ", "tcpN", "tcpQ", "tcpR", "tcpS", "tcpT"]
+
+[virulence_sets.lux]
+name = "Lux Operon"
+type = "quorum sensing"
+genes = ["luxO", "luxP", "luxQ", "luxS", "luxU"]
+
+[virulence_sets.rtx]
+name = "RTX Toxin Operon"
+type = "Toxin"
+genes = ["rtxA", "rtxB", "rtxC", "rtxD"]
+
+[virulence_sets.msha]
+name = "MSHA Pilus"
+type = "adhesion"
+genes = ["MshA", "MshB", "MshC", "MshD", "MshE", "MshF", "MshG", "MshH", "MshI", "MshJ", "MshK", "MshM", "MshN"]
