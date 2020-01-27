@@ -103,7 +103,7 @@ os.remove(out)
 # Simple virulence makers
 
 result = dict()
-result['virulence_genes'] = list()
+result['virulenceGenes'] = list()
 
 for gene in metadata['virulence_genes']:
     if gene['name'] in selected_records.keys():
@@ -113,10 +113,10 @@ for gene in metadata['virulence_genes']:
     else:
         gene['status'] = 'Not found'
         gene['matches'] = []
-    result['virulence_genes'].append(gene)
+    result['virulenceGenes'].append(gene)
 
 # Virulence clusters/operons
-result['virulence_clusters'] = list()
+result['virulenceClusters'] = list()
 
 for cluster_id, cluster in metadata['virulence_sets'].items():
     cluster['id'] = cluster_id
@@ -135,7 +135,7 @@ for cluster_id, cluster in metadata['virulence_sets'].items():
     cluster['missing'] = [gene for gene, profile in cluster['matches'].items() if 'Not found' == profile['status']]
     cluster['incomplete'] = [gene for gene, profile in cluster['matches'].items() if 'Incomplete' == profile['status']]
     cluster['complete'] = len(cluster['present']) == len(cluster['genes'])
-    result['virulence_clusters'].append(cluster)
+    result['virulenceClusters'].append(cluster)
 
 # Serogroups & biotypes
 result['serogroup'], result['serogroupMarkers'] = extractType(metadata['serogroup_markers'], selected_records)
