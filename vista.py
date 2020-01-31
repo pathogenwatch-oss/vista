@@ -21,7 +21,7 @@ class Match:
         self.refStart = ref_start
         self.refEnd = ref_end
         self.frame = frame
-        self.is_forward = is_forward
+        self.isForward = is_forward
         self.isComplete = is_complete
         self.isDisrupted = is_disrupted
         self.isExact = is_exact

@@ -1,4 +1,7 @@
 # Created by .ignore support plugin (hsz.mobi)
+
+examples/**
+data/*.n*
 ### Python template
 # Byte-compiled / optimized / DLL files
 __pycache__/
