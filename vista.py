@@ -48,7 +48,7 @@ def classify_matches(family_matches: dict, ref_length: int) -> List[Match]:
 
 # Considered present if any match is complete and not disrupted.
 def determine_status(matches: List[Match]) -> str:
-    if len(virulence_hits) == 0:
+    if len(matches) == 0:
         return 'Not found'
     status = 'Present'
     for match in matches:
