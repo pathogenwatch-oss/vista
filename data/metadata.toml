@@ -19,7 +19,7 @@ biotype_markers = [
 virulence_genes = [
  {name = "ctxA", type = "Toxin"},
  # Use ctxB3 sequence
- {name = "ctxB", type = "Toxin"},
+ {name = "ctxB", type = "Toxin", references = [ "ctxB1", "ctxB3", "ctxB7" ]},
  {name = "zot", type = "Toxin"},
  {name = "ace", type = "Toxin"},
  {name = "hlyA", type = "Hemolysin"},

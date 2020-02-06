@@ -34,46 +34,55 @@ def find_premature_stop(dna: str, frame: int, includes_end: bool) -> bool:
         return str(translation).index('*') < len(translation) - end_check
 
 
-def remove_overlaps(blast_records) -> dict:
+def process_contig(contig_id: str, alignments: list) -> dict:
     threshold = 60
+
+    excluded = set()
+    contig_keep = defaultdict(dict)
+
+    for query in range(0, len(alignments)):
+        selected = list()
+        query_alignment = alignments[query]
+
+        title = query_alignment.title.split(' ')[0]
+
+        for hsp in query_alignment.hsps:
+            name = title + '_' + str(hsp.query_start)
+            if name in excluded:
+                continue
+            for test in range(query, len(alignments)):
+                test_ali = alignments[test]
+                test_title = test_ali.title.split(' ')[0]
+                for test_hsp in test_ali.hsps:
+                    test_name = test_title + '_' + str(test_hsp.query_start)
+                    if test_name in excluded:
+                        continue
+                    if name == test_name:
+                        continue
+                    if overlaps((hsp.query_start, hsp.query_end), (test_hsp.query_start, test_hsp.query_end), threshold):
+                        if hsp.align_length - hsp.gaps < test_hsp.align_length - test_hsp.gaps:
+                            excluded.add(test_name)
+                            continue
+                        elif hsp.identities >= test_hsp.identities:
+                            excluded.add(test_name)
+                        else:
+                            excluded.add(name)
+                            break
+                    else:
+                        continue
+            if name not in excluded:
+                selected.append(hsp)
+        if len(selected) != 0:
+            contig_keep[title][contig_id] = selected
+    return contig_keep
+
+
+def remove_overlaps(blast_records) -> dict:
     record_list = list(blast_records)
-    kept = defaultdict(dict)
+    kept = dict()
 
     for contig_search in record_list:
         if len(contig_search.alignments) == 0:
             continue
-        excluded = set()
-        for query in range(0, len(contig_search.alignments)):
-            selected = list()
-            query_alignment = contig_search.alignments[query]
-            title = query_alignment.title.split(' ')[0]
-
-            for hsp in query_alignment.hsps:
-                name = title + '_' + str(hsp.query_start)
-                if name in excluded:
-                    continue
-                for test in range(query, len(contig_search.alignments)):
-                    test_ali = contig_search.alignments[test]
-                    for test_hsp in test_ali.hsps:
-                        test_name = title + '_' + str(test_hsp.query_start)
-                        if test_name in excluded:
-                            continue
-                        if name == test_name:
-                            continue
-                        if overlaps((hsp.query_start, hsp.query_end),
-                                    (test_hsp.query_start, test_hsp.query_end),
-                                    threshold):
-                            if hsp.align_length - hsp.gaps < test_hsp.align_length - test_hsp.gaps:
-                                excluded.add(test_name)
-                                continue
-                            else:
-                                excluded.add(name)
-                                break
-                        else:
-                            continue
-                if name not in excluded:
-                    selected.append(hsp)
-            if len(selected) != 0:
-                kept[title][contig_search.query] = selected
-
+        kept.update(process_contig(contig_search.query, contig_search.alignments))
     return kept

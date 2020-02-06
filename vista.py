@@ -48,23 +48,25 @@ def classify_matches(family_matches: dict, ref_length: int) -> List[Match]:
 
 # Considered present if any match is complete and not disrupted.
 def determine_status(matches: List[Match]) -> str:
-    if len(hits) == 0:
+    if len(virulence_hits) == 0:
         return 'Not found'
-    result = 'Present'
+    status = 'Present'
     for match in matches:
         if match.isDisrupted or not match.isComplete:
-            result = 'Incomplete'
+            status = 'Incomplete'
         else:
             return 'Present'
-    return result
+    return status
 
 
-def extractType(markers: List, records) -> (str, List):
+def extract_type(markers: List, records) -> (str, List):
     type_markers = list()
     types = list()
     for marker in markers:
         if marker['gene'] in records.keys():
-            hits = classify_matches(records[marker['gene']], lengths[marker['gene']])
+            hits = [hit for hit in classify_matches(records[marker['gene']], lengths[marker['gene']]) if
+                    not hit.isDisrupted]
+
             if 0 < len([hit for hit in hits if hit.isExact]):
                 types.append(marker['name'])
             else:
@@ -107,9 +109,15 @@ result['virulenceGenes'] = list()
 
 for gene in metadata['virulence_genes']:
     if gene['name'] in selected_records.keys():
-        hits = classify_matches(selected_records[gene['name']], lengths[gene['name']])
-        gene['status'] = determine_status(hits)
-        gene['matches'] = hits
+        virulence_hits = classify_matches(selected_records[gene['name']], lengths[gene['name']])
+        gene['status'] = determine_status(virulence_hits)
+        gene['matches'] = virulence_hits
+    elif 'references' in gene.keys() and len(selected_records.keys() & set(gene['references'])) > 0:
+        # will only ever be one reference matched
+        reference = list(selected_records.keys() & set(gene['references']))[0]
+        virulence_hits = classify_matches(selected_records[reference], lengths[reference])
+        gene['status'] = determine_status(virulence_hits)
+        gene['matches'] = virulence_hits
     else:
         gene['status'] = 'Not found'
         gene['matches'] = []
@@ -124,9 +132,9 @@ for cluster_id, cluster in metadata['virulence_sets'].items():
     for gene in cluster['genes']:
         gene_profile = dict()
         if gene in selected_records.keys():
-            hits = classify_matches(selected_records[gene], lengths[gene])
-            gene_profile['status'] = determine_status(hits)
-            gene_profile['matches'] = hits
+            cluster_hits = classify_matches(selected_records[gene], lengths[gene])
+            gene_profile['status'] = determine_status(cluster_hits)
+            gene_profile['matches'] = cluster_hits
         else:
             gene_profile['status'] = 'Not found'
             gene_profile['matches'] = []
@@ -138,7 +146,7 @@ for cluster_id, cluster in metadata['virulence_sets'].items():
     result['virulenceClusters'].append(cluster)
 
 # Serogroups & biotypes
-result['serogroup'], result['serogroupMarkers'] = extractType(metadata['serogroup_markers'], selected_records)
-result['biotype'], result['biotypeMarkers'] = extractType(metadata['biotype_markers'], selected_records)
+result['serogroup'], result['serogroupMarkers'] = extract_type(metadata['serogroup_markers'], selected_records)
+result['biotype'], result['biotypeMarkers'] = extract_type(metadata['biotype_markers'], selected_records)
 
 print(json.dumps(result, default=lambda x: x.__dict__), file=sys.stdout)
