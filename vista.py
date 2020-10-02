@@ -69,8 +69,8 @@ def extract_type(markers: List, records) -> (str, List):
 
             if 0 < len([hit for hit in hits if hit.isExact]):
                 types.append(marker['name'])
-            else:
-                types.append(marker['name'] + '*')
+            # else:
+            #     types.append(marker['name'] + '*')
             marker['matches'] = hits
         else:
             marker['matches'] = []
@@ -78,9 +78,6 @@ def extract_type(markers: List, records) -> (str, List):
 
     tag = ';'.join(types)
     return tag, type_markers
-
-
-# Returns a gene_id -> contig_id -> [hsps]
 
 
 query_fasta = sys.argv[1]
@@ -142,7 +139,9 @@ for cluster_id, cluster in metadata['virulence_sets'].items():
     cluster['present'] = [gene for gene, profile in cluster['matches'].items() if 'Present' == profile['status']]
     cluster['missing'] = [gene for gene, profile in cluster['matches'].items() if 'Not found' == profile['status']]
     cluster['incomplete'] = [gene for gene, profile in cluster['matches'].items() if 'Incomplete' == profile['status']]
-    cluster['complete'] = len(cluster['present']) == len(cluster['genes'])
+    # cluster['complete'] = len(cluster['present']) == len(cluster['genes'])
+    cluster['status'] = 'Present' if len(cluster['present']) == len(cluster['genes']) else 'Incomplete' if len(
+        cluster['present']) > 0 else 'Not found'
     result['virulenceClusters'].append(cluster)
 
 # Serogroups & biotypes
