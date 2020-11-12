@@ -2,7 +2,7 @@ import json
 import os
 import sys
 import uuid
-from typing import List
+from typing import List, Dict
 
 from Bio.Blast import NCBIXML
 from Bio.Blast.Applications import NcbiblastnCommandline
@@ -59,15 +59,27 @@ def determine_status(matches: List[Match]) -> str:
     return status
 
 
+def gather_hits_for_gene(records, marker_name):
+    return [hit for hit in classify_matches(records[marker_name], lengths[marker_name]) if
+            not hit.isDisrupted or not hit.isComplete]
+
+
+def at_least_one_exact_match(hits):
+    return 0 < len(only_exact_matches(hits))
+
+
+def only_exact_matches(hits):
+    return [hit for hit in hits if hit.isExact]
+
+
 def extract_type(markers: List, records) -> (str, List):
     type_markers = list()
     types = list()
     for marker in markers:
         if marker['gene'] in records.keys():
-            hits = [hit for hit in classify_matches(records[marker['gene']], lengths[marker['gene']]) if
-                    not hit.isDisrupted]
+            hits = gather_hits_for_gene(records, marker['gene'])
 
-            if 0 < len([hit for hit in hits if hit.isExact]):
+            if at_least_one_exact_match(hits):
                 types.append(marker['name'])
             # else:
             #     types.append(marker['name'] + '*')
@@ -78,6 +90,44 @@ def extract_type(markers: List, records) -> (str, List):
 
     tag = ';'.join(types)
     return tag, type_markers
+
+
+def extract_biotype(records: Dict) -> (str, List):
+    types = list()
+    type_markers = list()
+
+    if 'wbfZ' in records.keys():
+        hits = only_exact_matches(gather_hits_for_gene(records, 'wbfZ'))
+        if 0 < len(hits):
+            types.append('O139')
+            type_markers.append({'name': 'O139', 'gene': 'wbfZ', 'matches': hits})
+
+    rfbV_present = 'rfbV' in records.keys()
+    if rfbV_present:
+        rfbv_hits = only_exact_matches(gather_hits_for_gene(records, 'rfbV'))
+        if 0 < len(rfbv_hits):
+            type_markers.append({'name': 'O1', 'gene': 'rfbV', 'matches': rfbv_hits})
+            modern_o1 = False
+            has_ctxb = False
+            all_ctxb_matches = list()
+            modern_o1_schema = {'ctxB1': 'O1 classical', 'ctxB3': 'O1 El Tor', 'ctxB7': 'O1 Haiti'}
+            for allele in modern_o1_schema:
+                if allele in records.keys():
+                    hits = gather_hits_for_gene(records, allele)
+                    has_ctxb = True
+                    all_ctxb_matches.extend(hits)
+                    if at_least_one_exact_match(hits):
+                        modern_o1 = True
+                        types.append(modern_o1_schema[allele])
+                        type_markers.append({'name': modern_o1_schema[allele], 'gene': allele, 'matches': hits})
+            if not modern_o1 and has_ctxb:
+                types.append('O1 pathogenic')
+                type_markers.append({'name': 'O1 pathogenic', 'gene': 'ctxB', 'matches': all_ctxb_matches})
+            if not modern_o1 and not has_ctxb:
+                types.append('O1 environmental')
+                type_markers.append({'name': 'O1 pathogenic', 'gene': 'ctxB', 'matches': all_ctxb_matches})
+
+    return ';'.join(types), type_markers
 
 
 query_fasta = sys.argv[1]
@@ -146,6 +196,6 @@ for cluster_id, cluster in metadata['virulence_sets'].items():
 
 # Serogroups & biotypes
 result['serogroup'], result['serogroupMarkers'] = extract_type(metadata['serogroup_markers'], selected_records)
-result['biotype'], result['biotypeMarkers'] = extract_type(metadata['biotype_markers'], selected_records)
+result['biotype'], result['biotypeMarkers'] = extract_biotype(selected_records)
 
 print(json.dumps(result, default=lambda x: x.__dict__), file=sys.stdout)
