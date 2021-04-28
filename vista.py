@@ -36,7 +36,7 @@ def classify_matches(family_matches: dict, ref_length: int) -> List[Match]:
             is_forward = 0 < hsp.frame[1]
             is_complete = ref_start == 1 and ref_end == ref_length
             is_exact = is_complete and hsp.query == hsp.sbjct
-            query_seq = hsp.sbjct if is_forward else str(Seq(hsp.sbjct).reverse_complement())
+            query_seq = hsp.query if is_forward else str(Seq(hsp.query).reverse_complement())
             is_disrupted = find_frameshift(query_seq, hsp.sbjct) or find_premature_stop(query_seq, hsp.frame[0],
                                                                                         ref_end < ref_length)
             percent_identity = round((float(hsp.identities) / float(ref_length)) * 100, 2)
