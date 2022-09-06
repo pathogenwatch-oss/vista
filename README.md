@@ -123,7 +123,7 @@ python3 vista.py my_vibrio_genome.fasta $PWD > result.json
 ```
 
 ## Acknowledgements
-Originally developed by Corin Yeats and Sina Beier as part of the Vibriowatch project between the Centre for Pathogen Genome Surveillance, Big Data Institute, Oxford and Nick Thompson's team at the Wellcome Sanger Institute. We would like to acknowledge the support of our hosting institutes.
+Originally developed by Corin Yeats and Sina Beier as part of the Vibriowatch project between the [Centre for Pathogen Genome Surveillance](https://pathogensurveillance.net/), [Big Data Institute, Oxford](https://www.bdi.ox.ac.uk/) and Nick Thompson's team at the [Wellcome Sanger Institute](https://www.sanger.ac.uk/). We would like to acknowledge the support of our hosting institutes.
 
 ## Contributors
  - Corin Yeats
