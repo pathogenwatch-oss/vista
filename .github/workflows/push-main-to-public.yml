@@ -1,0 +1,20 @@
+name: Push main to public
+
+on:
+  push:
+    branches: [ "main" ]
+
+  workflow_dispatch:
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: git-sync
+        uses: wei/git-sync@v3
+        with:
+          source_repo: "https://cgps-admin:${{ secrets.GIT_PUSH_TOKEN }}@github.com/pathogenwatch/vista.git"
+          source_branch: "main"
+          destination_repo: "https://cgps-admin:${{ secrets.GIT_PUSH_TOKEN }}@github.com/pathogenwatch-oss/vista.git"
+          destination_branch: "main"
