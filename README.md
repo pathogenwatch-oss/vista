@@ -13,10 +13,13 @@ However, it is straightforward to install and run locally using Python3 + BLAST.
 
 ### Running via Docker
 ```
-docker run --rm -v $PWD:/data/ registry.gitlab.com/cgps/vista:v0.0.6 my_vibrio_genome.fasta > result.json
+docker build --rm -t vista .
+cd ~/my_fasta_dir
+docker run --rm -v $PWD:/tmp vista /tmp/my_vibrio_genome.fasta > result.json
 ```
 
 ### Running directly
+First install any required python dependencies and NCBI-BLAST.
 ```
 python3 vista.py my_vibrio_genome.fasta $PWD > result.json
 ```
