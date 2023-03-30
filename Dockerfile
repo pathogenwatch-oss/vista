@@ -14,7 +14,7 @@ RUN echo "Running ${BLAST_VERSION}"
 
 RUN mkdir -p /tmp/blast \
     && mkdir /opt/blast \
-    && curl ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/"${BLAST_VERSION}"/ncbi-blast-"{$BLAST_VERSION}"+-x64-linux.tar.gz \
+    && curl ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/"${BLAST_VERSION}"/ncbi-blast-"${BLAST_VERSION}"+-x64-linux.tar.gz \
     | tar -zxC /tmp/blast --strip-components=1 \
     && cd /tmp/blast/bin \
   # The below line works for the latest versions of BLAST
