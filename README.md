@@ -6,13 +6,14 @@ This tool is currently under development by the [CGPS](https://www.pathogensurve
 
 ## How to use
 Vista takes a DNA sequence FASTA file as input and outputs a JSON format result to STDOUT. 
-While it will directly on the command line, we only support running one of the official Vista Docker images. 
-The current images can be found at [our GitLab registry](https://gitlab.com/cgps/vista/container_registry/893140). 
+While it will run directly on the command line, we only support building and running Docker images. 
 To create a local or bespoke build, we recommend building a Docker image using the provided [Dockerfile](/Dockerfile).
 However, it is straightforward to install and run locally using Python3 + BLAST.
 
 ### Running via Docker
 ```
+git clone [vista repo]
+cd vista
 docker build --rm -t vista .
 cd ~/my_fasta_dir
 docker run --rm -v $PWD:/tmp vista /tmp/my_vibrio_genome.fasta > result.json
@@ -21,10 +22,13 @@ docker run --rm -v $PWD:/tmp vista /tmp/my_vibrio_genome.fasta > result.json
 ### Running directly
 First install any required python dependencies and NCBI-BLAST.
 ```
-python3 vista.py my_vibrio_genome.fasta $PWD > result.json
+[install makeblastdb & blastn via whatever mechanism]
+git clone [vista repo]
+cd vista
+pip3 install -r requirements.txt
+python3 vista.py build
+python3 vista.py search /path/to/my_vibrio_genome.fasta > result.json
 ```
-
-*NB* If the second argument is not provided, then it assumes the FASTA file is in /data.
 
 ## Example output
 ```

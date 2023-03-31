@@ -1,9 +1,10 @@
 import re
 from collections import defaultdict
+from typing import Any, Dict, List
 
 from Bio.Seq import Seq
 
-indel_finder = re.compile(r'\w[-]+\w')
+indel_finder = re.compile(r'\w-+\w')
 
 
 def overlaps(coords1: tuple, coords2: tuple, threshold: int):
@@ -34,7 +35,8 @@ def find_premature_stop(dna: str, frame: int, includes_end: bool) -> bool:
         return str(translation).index('*') < len(translation) - end_check
 
 
-def process_contig(contig_id: str, alignments: list) -> dict:
+def process_contig(contig_id: str, alignments: List[Any], lengths: Dict[str, int],
+                   coverage: float) -> Dict[str, Dict[str, Any]]:
     threshold = 60
 
     excluded = set()
@@ -59,7 +61,10 @@ def process_contig(contig_id: str, alignments: list) -> dict:
                         continue
                     if name == test_name:
                         continue
-                    if overlaps((hsp.query_start, hsp.query_end), (test_hsp.query_start, test_hsp.query_end), threshold):
+                    if (hsp.sbjct_end - hsp.sbjct_start + 1) / lengths[title] < coverage:
+                        continue
+                    if overlaps((hsp.query_start, hsp.query_end), (test_hsp.query_start, test_hsp.query_end),
+                                threshold):
                         if hsp.align_length - hsp.gaps < test_hsp.align_length - test_hsp.gaps:
                             excluded.add(test_name)
                             continue
@@ -77,12 +82,12 @@ def process_contig(contig_id: str, alignments: list) -> dict:
     return contig_keep
 
 
-def remove_overlaps(blast_records) -> dict:
+def clean_matches(blast_records, lengths: Dict[str, int], coverage: float) -> Dict[str, Dict[str, Any]]:
     record_list = list(blast_records)
     kept = dict()
 
     for contig_search in record_list:
         if len(contig_search.alignments) == 0:
             continue
-        kept.update(process_contig(contig_search.query, contig_search.alignments))
+        kept.update(process_contig(contig_search.query, contig_search.alignments, lengths, coverage))
     return kept
