@@ -20,9 +20,8 @@ docker run --rm -v $PWD:/tmp vista /tmp/my_vibrio_genome.fasta > result.json
 ```
 
 ### Running directly
-First install any required python dependencies and NCBI-BLAST.
+First install NCBI-BLAST (blastn & makeblastdb), python 3 and pip.
 ```
-[install makeblastdb & blastn via whatever mechanism]
 git clone [vista repo]
 cd vista
 pip3 install -r requirements.txt
