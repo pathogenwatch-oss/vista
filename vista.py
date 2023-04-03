@@ -11,7 +11,7 @@ import typer
 from Bio.Blast import NCBIXML
 from Bio.Blast.Applications import NcbiblastnCommandline
 
-from vista.io import read_metadata, read_sequence_lengths, read_sequences, build_blastdb
+from vista.files import read_metadata, read_sequence_lengths, read_sequences, build_blastdb
 from vista.search import serogroup_assignment, biotype_assignment, virulence_assignments, cluster_assignments
 from vista.utils import clean_matches
 
@@ -40,8 +40,8 @@ def search(query_fasta: str, data_path: str = 'data', cpus: int = multiprocessin
             return 'biotypeMarkers', biotype_assignment(selected_records, lengths)
         elif name == 'serogroupMarkers':
             return 'serogroupMarkers', serogroup_assignment(libraries[name], selected_records, lengths)
-        elif name == 'virulenceSets':
-            return 'virulenceSets', cluster_assignments(libraries[name], selected_records, lengths)
+        elif name == 'virulenceClusters':
+            return 'virulenceClusters', cluster_assignments(libraries[name], selected_records, lengths)
         else:
             raise ValueError
 
@@ -49,7 +49,7 @@ def search(query_fasta: str, data_path: str = 'data', cpus: int = multiprocessin
     vista_result = dict()
     with Pool(processes=cpus) as pool:
         for library, result in pool.map(library_search, list(libraries.keys())):
-            vista_result[library] = result
+            vista_result = vista_result | result
 
     print(json.dumps(vista_result, default=lambda x: x.__dict__), file=sys.stdout)
 
@@ -61,11 +61,11 @@ def build(data_dir: str = 'data', db_dir: str = 'data'):
     libraries = metadata['libraries']
 
     # First build simple marker databases
-    virulence_sets = 'virulenceSets'
+    virulence_sets = 'virulenceClusters'
     for name in libraries.keys():
         if name == virulence_sets:
             continue
-        build_blastdb(data_dir, db_dir, [record["gene"] for record in libraries[name]['genes']], name, sequences)
+        build_blastdb(data_dir, db_dir, [record["name"] for record in libraries[name]['genes']], name, sequences)
 
     # Then build a DB for the virulence gene clusters
     virulence_genes = set()

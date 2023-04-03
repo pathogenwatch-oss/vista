@@ -29,7 +29,7 @@ def build_blastdb(data_dir: str, db_dir: str, genes: Iterable[str], name: str, s
     db_path = os.path.join(db_dir, name)
     with open(fasta_path, 'w') as fasta_fh:
         for gene in genes:
-            print(sequences[gene].format("fasta"), file=fasta_fh)
+            print(sequences[gene].format("fasta"), file=fasta_fh, end='')
     process = subprocess.run(["makeblastdb", "-in", fasta_path, "-out", db_path, "-dbtype", "nucl", "-parse_seqids"])
     if process.returncode != 0:
         typer.echo(f'Failed to build {name} database')

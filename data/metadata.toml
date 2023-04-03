@@ -6,64 +6,66 @@ coverage = 0.8
 # Serogroups
 [libraries.serogroupMarkers]
 genes = [
-    { gene = "rfbV", name = "O1" },
-    { gene = "wbfZ", name = "O139" }
+    { name = "rfbV", type = "O1" },
+    { name = "wbfZ", type = "O139" }
 ]
 
 # Biotypes
 # Highlight if inexact
 [libraries.biotypeMarkers]
 genes = [
-    { gene = "VC2346", name = "El Tor" },
-    { gene = "ctxB1", name = "Classical" },
-    { gene = "ctxB3", name = "O1" },
-    { gene = "ctxB7", name = "O1 Hawaii" },
-    { gene = "rstR", name = "O139 Pathogenic" }
+    { name = "rfbV", type = "O1" },
+    { name = "wbfZ", type = "O139" },
+    { name = "VC2346", type = "El Tor" },
+    { name = "ctxB1", type = "Classical" },
+    { name = "ctxB3", type = "O1" },
+    { name = "ctxB7", type = "O1 Hawaii" },
+    { name = "rstR", type = "O139 Pathogenic" }
 ]
 
 # Type could be a GO term, e.g. GO:0090729 = Toxin activity
 # 80% identity
 [libraries.virulenceGenes]
 genes = [
-    { gene = "ace", type = "Toxin" },
-    { gene = "acfA", type = "Colonisation" },
-    { gene = "acfB", type = "Colonisation" },
-    { gene = "acfC", type = "Colonisation" },
-    { gene = "acfD", type = "Colonisation" },
-    { gene = "chxA", type = "Toxin" },
-    { gene = "ctxA", type = "Toxin" },
-    { gene = "ctxB", type = "Toxin" },
-    { gene = "hapA", type = "Haemagglutinin" },
-    { gene = "hlyA", type = "Haemolysin" },
-    { gene = "makA", type = "Toxin" },
-    { gene = "nanH", type = "Neuraminidase" },
-    { gene = "ompU", type = "Adhesion" },
-    { gene = "rpoS", type = "Fitness" },
-    { gene = "stn", type = "Toxin" },
-    { gene = "tagA", type = "Mucinase" },
-    { gene = "toxR", type = "Regulator" },
-    { gene = "vasX", type = "Toxin" },
-    { gene = "zot", type = "Toxin" },
+    { name = "ace", type = "Toxin" },
+    { name = "acfA", type = "Colonisation" },
+    { name = "acfB", type = "Colonisation" },
+    { name = "acfC", type = "Colonisation" },
+    { name = "acfD", type = "Colonisation" },
+    { name = "chxA", type = "Toxin" },
+    { name = "ctxA", type = "Toxin" },
+    { name = "ctxB", type = "Toxin" },
+    { name = "hapA", type = "Haemagglutinin" },
+    { name = "hlyA", type = "Haemolysin" },
+    { name = "makA", type = "Toxin" },
+    { name = "nanH", type = "Neuraminidase" },
+    { name = "ompU", type = "Adhesion" },
+    { name = "rpoS", type = "Fitness" },
+    { name = "stn", type = "Toxin" },
+    { name = "tagA", type = "Mucinase" },
+    { name = "toxR", type = "Regulator" },
+    { name = "vasX", type = "Toxin" },
+    { name = "zot", type = "Toxin" },
 ]
 
 # Virulence
-[libraries.virulenceSets]
-[libraries.virulenceSets.tcp]
+[libraries.virulenceClusters]
+[libraries.virulenceClusters.tcp]
 name = "TCP cluster"
 type = "colonisation"
 genes = ["tcpA", "tcpB", "tcpC", "tcpD", "tcpE", "tcpF", "tcpH", "tcpI", "tcpJ", "tcpN", "tcpQ", "tcpR", "tcpS", "tcpT"]
 
-[libraries.virulenceSets.lux]
+[libraries.virulenceClusters.lux]
 name = "Lux Operon"
 type = "quorum sensing"
 genes = ["luxO", "luxP", "luxQ", "luxS", "luxU"]
 
-[libraries.virulenceSets.rtx]
+[libraries.virulenceClusters.rtx]
 name = "RTX Toxin Operon"
 type = "Toxin"
 genes = ["rtxA", "rtxB", "rtxC", "rtxD"]
 
-[libraries.virulenceSets.msha]
+[libraries.virulenceClusters.msha]
 name = "MSHA Pilus"
 type = "adhesion"
 genes = ["MshA", "MshB", "MshC", "MshD", "MshE", "MshF", "MshG", "MshH", "MshI", "MshJ", "MshK", "MshM", "MshN"]
