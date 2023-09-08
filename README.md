@@ -1,4 +1,8 @@
 # Vista
+
+## WARNING
+We have identified an issue with the selection of reference loci for biotyping and serotyping. As a result the output is not reliable, and should not be used for now. We are working on a fix for this, whether we can improve them or will have to remove them. Apologies for any problems caused as a result.
+
 ## About
 A database and genome assembly search tool for identifying _Vibrio cholerae_ biotypes and serotypes, and identifying virulence genes and clusters.
 
