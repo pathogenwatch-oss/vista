@@ -1,4 +1,4 @@
-FROM ubuntu:22.04 as blast
+FROM ubuntu:24.04 AS blast
 
 ARG BLAST_VERSION=2.12.0
 
@@ -8,7 +8,7 @@ RUN apt update \
       && apt install -y -q apt-transport-https software-properties-common curl \
       && rm -rf /var/lib/apt/lists/*
 
-ENV BLAST_VERSION ${BLAST_VERSION}
+ENV BLAST_VERSION=${BLAST_VERSION}
 
 RUN echo "Using BLAST version: ${BLAST_VERSION}"
 
@@ -22,22 +22,18 @@ RUN mkdir -p /tmp/blast \
     && cd .. \
     && rm -rf /tmp/blast
 
-FROM ubuntu:22.04
+FROM python:3.12
 
 COPY requirements.txt /
 
-RUN apt update \
-    && apt install -y -q --no-install-recommends python3 python3-pip \
-    && rm -rf /var/lib/apt/lists/* \
-    && pip3 install -r /requirements.txt \
-    && pip3 cache purge \
-    && apt -y -q remove python3-pip
+RUN pip install -r /requirements.txt \
+    && pip cache purge
 
 COPY --from=blast /opt/blast/makeblastdb /opt/blast/makeblastdb
 
 COPY --from=blast /opt/blast/blastn /opt/blast/blastn
 
-ENV PATH /opt/blast:$PATH
+ENV PATH=/opt/blast:$PATH
 
 COPY data /data
 
@@ -45,6 +41,6 @@ COPY vista /vista
 
 COPY vista.py /
 
-RUN python3 /vista.py build
+RUN python /vista.py build
 
 ENTRYPOINT ["python3", "/vista.py", "search"]

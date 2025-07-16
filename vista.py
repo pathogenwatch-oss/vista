@@ -2,17 +2,16 @@ import io
 import json
 import multiprocessing
 import os
+import subprocess
 import sys
-import uuid
 from multiprocessing.pool import ThreadPool as Pool
 from typing import Any, Tuple
 
 import typer
 from Bio.Blast import NCBIXML
-from Bio.Blast.Applications import NcbiblastnCommandline
 
 from vista.files import read_metadata, read_sequence_lengths, read_sequences, build_blastdb
-from vista.search import serogroup_assignment, biotype_assignment, virulence_assignments, cluster_assignments
+from vista.search import serogroup_assignment, virulence_assignments, cluster_assignments
 from vista.utils import clean_matches
 
 app = typer.Typer()
@@ -29,15 +28,28 @@ def search(query_fasta: str, data_path: str = 'data', cpus: int = multiprocessin
     def library_search(name: str) -> Tuple[str, Any]:
         blast_db = os.path.join(data_path, name)
         lengths = read_sequence_lengths(os.path.join(data_path, f'{name}.fasta'))
-        out = os.path.join('/tmp', str(uuid.uuid4()))
-        blastn_cline = NcbiblastnCommandline(query=query_fasta, db=blast_db, evalue=evalue, outfmt=5)
-        stdout, stderr = blastn_cline()
-        with io.StringIO(stdout) as f:
+        # Construct the blastn command
+        # Run the blastn command
+        blast_res = subprocess.run(
+            [
+                "blastn",
+                "-query",
+                query_fasta,
+                "-db",
+                blast_db,
+                "-evalue",
+                str(evalue),
+                "-outfmt",
+                "5",  # XML output format
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        with io.StringIO(blast_res.stdout) as f:
             selected_records = clean_matches(NCBIXML.parse(f), lengths, coverage)
         if name == 'virulenceGenes':
             return 'virulenceGenes', virulence_assignments(libraries[name], selected_records, lengths)
-        elif name == 'biotypeMarkers':
-            return 'biotypeMarkers', biotype_assignment(selected_records, lengths)
         elif name == 'serogroupMarkers':
             return 'serogroupMarkers', serogroup_assignment(libraries[name], selected_records, lengths)
         elif name == 'virulenceClusters':

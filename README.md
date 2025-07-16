@@ -1,30 +1,39 @@
 # Vista
 
 ## WARNING
-We have identified an issue with the selection of reference loci for biotyping and serotyping. As a result the output is not reliable, and should not be used for now. We are working on a fix for this, whether we can improve them or will have to remove them. Apologies for any problems caused as a result.
+
+We have identified an issue with the selection of reference loci for biotyping in previous versions of Vista. These
+results should not be used and are now excluded from the current version.
 
 ## About
-A database and genome assembly search tool for identifying _Vibrio cholerae_ biotypes and serotypes, and identifying virulence genes and clusters.
 
-This tool is currently under development by the [CGPS](https://www.pathogensurveillance.net/). Please open an issue or contact us via [email](mailto:pathogenwatch@cgps.group) if you would link to know more or contribute.
+A database and genome assembly search tool for identifying _Vibrio cholerae_ biotypes and serotypes, and identifying
+virulence genes and clusters.
+
+This tool is currently under development by the [CGPS](https://www.pathogensurveillance.net/). Please open an issue or
+contact us via [email](mailto:pathogenwatch@cgps.group) if you would link to know more or contribute.
 
 ## How to use
-Vista takes a DNA sequence FASTA file as input and outputs a JSON format result to STDOUT. 
-While it will run directly on the command line, we only support building and running Docker images. 
+
+Vista takes a DNA sequence FASTA file as input and outputs a JSON format result to STDOUT.
+While it will run directly on the command line, we only support building and running Docker images.
 To create a local or bespoke build, we recommend building a Docker image using the provided [Dockerfile](/Dockerfile).
 However, it is straightforward to install and run locally using Python3 + BLAST.
 
 ### Running via Docker
+
 ```
 git clone [vista repo]
 cd vista
 docker build --rm -t vista .
 cd ~/my_fasta_dir
-docker run --rm -v $PWD:/tmp vista /tmp/my_vibrio_genome.fasta > result.json
+docker run --rm -v $PWD:/fastas vista /fastas/my_vibrio_genome.fasta > result.json
 ```
 
 ### Running directly
+
 First install NCBI-BLAST (blastn & makeblastdb), python 3 and pip.
+
 ```
 git clone [vista repo]
 cd vista
@@ -34,6 +43,7 @@ python3 vista.py search /path/to/my_vibrio_genome.fasta > result.json
 ```
 
 ## Example output
+
 ```
 {
     "virulenceGenes": [
@@ -116,31 +126,24 @@ python3 vista.py search /path/to/my_vibrio_genome.fasta > result.json
             "matches": [...as above...]
         }
     ],
-    "biotype": "O1 El Tor",
-    "biotypeMarkers": [
-        {
-            "name": "O1",
-            "gene": "rfbV",
-            "matches": [...as above...]
-        },
-        {
-            "name": "O1 El Tor",
-            "gene": "ctxB3",
-            "matches": [...as above...]
-        }
-    ]
 }
 ```
 
 ## Acknowledgements
-Originally developed by Corin Yeats and Sina Beier as part of the Vibriowatch project between the [Centre for Pathogen Genome Surveillance](https://pathogensurveillance.net/), [Big Data Institute, Oxford](https://www.bdi.ox.ac.uk/) and Nick Thompson's team at the [Wellcome Sanger Institute](https://www.sanger.ac.uk/). We would like to acknowledge the support of our hosting institutes.
+
+Originally developed by Corin Yeats and Sina Beier as part of the Vibriowatch project between
+the [Centre for Pathogen Genome Surveillance](https://pathogensurveillance.net/), [Big Data Institute, Oxford](https://www.bdi.ox.ac.uk/)
+and Nick Thompson's team at the [Wellcome Sanger Institute](https://www.sanger.ac.uk/). We would like to acknowledge the
+support of our hosting institutes.
 
 ## Contributors
- - Corin Yeats
- - Sina Beier
- - Avril Coghlan
- - Nick Thompson
- - David Aanensen
+
+- Corin Yeats
+- Sina Beier
+- Avril Coghlan
+- Nick Thompson
+- David Aanensen
 
 ## Licensing
+
 See [LICENSE](LICENSE).

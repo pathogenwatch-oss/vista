@@ -84,44 +84,6 @@ def serogroup_assignment(library: Dict[str, Any], records, lengths: Dict[str, in
     return {"serogroup": tag, "serogroupMarkers": type_markers}
 
 
-def biotype_assignment(records: Dict[str, Any], lengths: Dict[str, int]) -> (str, List[Dict[str, Any]]):
-    types = list()
-    type_markers = list()
-
-    if 'wbfZ' in records.keys():
-        hits = only_exact_matches(gather_hits_for_gene(records, 'wbfZ', lengths))
-        if 0 < len(hits):
-            types.append('O139')
-            type_markers.append({'type': 'O139', 'name': 'wbfZ', 'matches': hits})
-
-    rfbv_present = 'rfbV' in records.keys()
-    if rfbv_present:
-        rfbv_hits = only_exact_matches(gather_hits_for_gene(records, 'rfbV', lengths))
-        if 0 < len(rfbv_hits):
-            type_markers.append({'type': 'O1', 'name': 'rfbV', 'matches': rfbv_hits})
-            modern_o1 = False
-            has_ctxb = False
-            all_ctxb_matches = list()
-            modern_o1_schema = {'ctxB1': 'O1 classical', 'ctxB3': 'O1 El Tor', 'ctxB7': 'O1 Haiti'}
-            for allele in modern_o1_schema:
-                if allele in records.keys():
-                    hits = gather_hits_for_gene(records, allele, lengths)
-                    has_ctxb = True
-                    all_ctxb_matches.extend(hits)
-                    if at_least_one_exact_match(hits):
-                        modern_o1 = True
-                        types.append(modern_o1_schema[allele])
-                        type_markers.append({'type': modern_o1_schema[allele], 'name': allele, 'matches': hits})
-            if not modern_o1 and has_ctxb:
-                types.append('O1 pathogenic')
-                type_markers.append({'type': 'O1 pathogenic', 'name': 'ctxB', 'matches': all_ctxb_matches})
-            if not modern_o1 and not has_ctxb:
-                types.append('O1 environmental')
-                type_markers.append({'type': 'O1 pathogenic', 'name': 'ctxB', 'matches': all_ctxb_matches})
-
-    return {"biotype": ';'.join(types), "biotypeMarkers": type_markers}
-
-
 def virulence_assignments(library: Dict[str, Any], records: Dict[str, Any], lengths: Dict[str, int]) -> (
         str, List[Dict[str, Any]]):
     result = list()

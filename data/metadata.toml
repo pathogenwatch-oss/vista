@@ -10,20 +10,6 @@ genes = [
     { name = "wbfZ", type = "O139" }
 ]
 
-# Biotypes
-# Highlight if inexact
-[libraries.biotypeMarkers]
-genes = [
-    { name = "rfbV", type = "O1" },
-    { name = "wbfZ", type = "O139" },
-    { name = "VC2346", type = "El Tor" },
-    { name = "ctxB1", type = "Classical" },
-    { name = "ctxB3", type = "O1" },
-    { name = "ctxB7", type = "O1 Hawaii" },
-    { name = "rstR", type = "O139 Pathogenic" }
-]
-
-# Type could be a GO term, e.g. GO:0090729 = Toxin activity
 # 80% identity
 [libraries.virulenceGenes]
 genes = [
