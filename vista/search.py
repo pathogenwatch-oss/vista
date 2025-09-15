@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 from Bio.Seq import Seq
 
@@ -6,8 +6,20 @@ from vista.utils import find_frameshift, find_premature_stop
 
 
 class Match:
-    def __init__(self, contig_id: str, query_start: int, query_end: int, ref_start: int, ref_end: int, frame: int,
-                 is_forward: bool, is_complete: bool, is_disrupted: bool, is_exact: bool, identity: float):
+    def __init__(
+        self,
+        contig_id: str,
+        query_start: int,
+        query_end: int,
+        ref_start: int,
+        ref_end: int,
+        frame: int,
+        is_forward: bool,
+        is_complete: bool,
+        is_disrupted: bool,
+        is_exact: bool,
+        identity: float,
+    ):
         self.contigId = contig_id
         self.queryStart = query_start
         self.queryEnd = query_end
@@ -29,31 +41,53 @@ def classify_matches(family_matches: Dict[str, Any], ref_length: int) -> List[Ma
             is_forward = 0 < hsp.frame[1]
             is_complete = ref_start == 1 and ref_end == ref_length
             is_exact = is_complete and hsp.query == hsp.sbjct
-            query_seq = hsp.query if is_forward else str(Seq(hsp.query).reverse_complement())
-            is_disrupted = find_frameshift(query_seq, hsp.sbjct) or find_premature_stop(query_seq, hsp.frame[0],
-                                                                                        ref_end < ref_length)
-            percent_identity = round((float(hsp.identities) / float(ref_length)) * 100, 2)
+            query_seq = (
+                hsp.query if is_forward else str(Seq(hsp.query).reverse_complement())
+            )
+            is_disrupted = find_frameshift(query_seq, hsp.sbjct) or find_premature_stop(
+                query_seq, hsp.frame[0], ref_end < ref_length
+            )
+            percent_identity = round(
+                (float(hsp.identities) / float(ref_length)) * 100, 2
+            )
             matches.append(
-                Match(contig_id, hsp.query_start, hsp.query_end, ref_start, ref_end, hsp.frame[0],
-                      is_forward, is_complete, is_disrupted, is_exact, percent_identity))
+                Match(
+                    contig_id,
+                    hsp.query_start,
+                    hsp.query_end,
+                    ref_start,
+                    ref_end,
+                    hsp.frame[0],
+                    is_forward,
+                    is_complete,
+                    is_disrupted,
+                    is_exact,
+                    percent_identity,
+                )
+            )
     return matches
 
 
 def determine_status(matches: List[Match]) -> str:
     if len(matches) == 0:
-        return 'Not found'
-    status = 'Present'
+        return "Not found"
+    status = "Present"
     for match in matches:
         if match.isDisrupted or not match.isComplete:
-            status = 'Incomplete'
+            status = "Incomplete"
         else:
-            return 'Present'
+            return "Present"
     return status
 
 
-def gather_hits_for_gene(records: Dict[str, Any], marker_name: str, lengths: Dict[str, int]) -> List[Match]:
-    return [hit for hit in classify_matches(records[marker_name], lengths[marker_name]) if
-            not hit.isDisrupted or not hit.isComplete]
+def gather_hits_for_gene(
+    records: Dict[str, Any], marker_name: str, lengths: Dict[str, int]
+) -> List[Match]:
+    return [
+        hit
+        for hit in classify_matches(records[marker_name], lengths[marker_name])
+        if not hit.isDisrupted or not hit.isComplete
+    ]
 
 
 def at_least_one_exact_match(hits: List[Match]) -> bool:
@@ -64,65 +98,87 @@ def only_exact_matches(hits: List[Match]) -> List[Match]:
     return [hit for hit in hits if hit.isExact]
 
 
-def serogroup_assignment(library: Dict[str, Any], records, lengths: Dict[str, int]) -> (str, List[Dict[str, str]]):
+def serogroup_assignment(
+    library: Dict[str, Any], records, lengths: Dict[str, int]
+) -> Dict[str, Any]:
     type_markers = list()
     types = list()
-    for marker in library['genes']:
-        if marker['name'] in records.keys():
-            hits = gather_hits_for_gene(records, marker['name'], lengths)
+    for marker in library["genes"]:
+        if marker["name"] in records.keys():
+            hits = gather_hits_for_gene(records, marker["name"], lengths)
 
             if at_least_one_exact_match(hits):
-                types.append(marker['type'])
+                types.append(marker["type"])
             # else:
             #     types.append(marker['name'] + '*')
-            marker['matches'] = hits
+            marker["matches"] = hits
         else:
-            marker['matches'] = []
+            marker["matches"] = []
         type_markers.append(marker)
 
-    tag = ';'.join(types)
+    tag = ";".join(types)
     return {"serogroup": tag, "serogroupMarkers": type_markers}
 
 
-def virulence_assignments(library: Dict[str, Any], records: Dict[str, Any], lengths: Dict[str, int]) -> (
-        str, List[Dict[str, Any]]):
+def virulence_assignments(
+    library: Dict[str, Any], records: Dict[str, Any], lengths: Dict[str, int]
+) -> Dict[str, Any]:
     result = list()
 
-    for gene in library['genes']:
-        if gene['name'] in records.keys():
-            virulence_hits = classify_matches(records[gene['name']], lengths[gene['name']])
-            gene['status'] = determine_status(virulence_hits)
-            gene['matches'] = virulence_hits
+    for gene in library["genes"]:
+        if gene["name"] in records.keys():
+            virulence_hits = classify_matches(
+                records[gene["name"]], lengths[gene["name"]]
+            )
+            gene["status"] = determine_status(virulence_hits)
+            gene["matches"] = virulence_hits
         else:
-            gene['status'] = 'Not found'
-            gene['matches'] = []
+            gene["status"] = "Not found"
+            gene["matches"] = []
         result.append(gene)
     return {"virulenceGenes": result}
 
 
-def cluster_assignments(library: Dict[str, Any], records: Dict[str, Any], lengths: Dict[str, int]) -> (
-        str, List[Dict[str, Any]]):
+def cluster_assignments(
+    library: Dict[str, Any], records: Dict[str, Any], lengths: Dict[str, int]
+) -> Dict[str, Any]:
     result = list()
 
     for cluster_id, cluster in library.items():
-        cluster['id'] = cluster_id
-        cluster['matches'] = dict()
-        for gene in cluster['genes']:
+        cluster["id"] = cluster_id
+        cluster["matches"] = dict()
+        for gene in cluster["genes"]:
             gene_profile = dict()
             if gene in records.keys():
                 cluster_hits = classify_matches(records[gene], lengths[gene])
-                gene_profile['status'] = determine_status(cluster_hits)
-                gene_profile['matches'] = cluster_hits
+                gene_profile["status"] = determine_status(cluster_hits)
+                gene_profile["matches"] = cluster_hits
             else:
-                gene_profile['status'] = 'Not found'
-                gene_profile['matches'] = []
-            cluster['matches'][gene] = gene_profile
-        cluster['present'] = [gene for gene, profile in cluster['matches'].items() if 'Present' == profile['status']]
-        cluster['missing'] = [gene for gene, profile in cluster['matches'].items() if 'Not found' == profile['status']]
-        cluster['incomplete'] = [gene for gene, profile in cluster['matches'].items() if
-                                 'Incomplete' == profile['status']]
+                gene_profile["status"] = "Not found"
+                gene_profile["matches"] = []
+            cluster["matches"][gene] = gene_profile
+        cluster["present"] = [
+            gene
+            for gene, profile in cluster["matches"].items()
+            if "Present" == profile["status"]
+        ]
+        cluster["missing"] = [
+            gene
+            for gene, profile in cluster["matches"].items()
+            if "Not found" == profile["status"]
+        ]
+        cluster["incomplete"] = [
+            gene
+            for gene, profile in cluster["matches"].items()
+            if "Incomplete" == profile["status"]
+        ]
         # cluster['complete'] = len(cluster['present']) == len(cluster['genes'])
-        cluster['status'] = 'Present' if len(cluster['present']) == len(cluster['genes']) else 'Incomplete' if len(
-            cluster['present']) > 0 else 'Not found'
+        cluster["status"] = (
+            "Present"
+            if len(cluster["present"]) == len(cluster["genes"])
+            else "Incomplete"
+            if len(cluster["present"]) > 0
+            else "Not found"
+        )
         result.append(cluster)
     return {"virulenceClusters": result}
