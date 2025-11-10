@@ -1,0 +1,35 @@
+[project]
+name = "vista"
+version = "2.0.1"
+description = "The VISTA tool for sequence analysis and annotation of V. cholerae"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "biopython>=1.86",
+    "toml>=0.10.2",
+    "typer>=0.20.0",
+]
+
+[project.scripts]
+vista = "vista.vista:app"
+
+[tool.pytest.ini_options]
+addopts = "-s --no-header --no-summary"
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[build-system]
+requires = ["hatchling>=1.25", "wheel"]
+build-backend = "hatchling.build"
+
+[tool.pixi.workspace]
+channels = ["conda-forge", "bioconda"]
+platforms = ["osx-64", "osx-arm64", "linux-64"]
+
+[tool.pixi.pypi-dependencies]
+vista = { path = ".", editable = true }
+
+[tool.pixi.tasks]
+
+[tool.pixi.dependencies]
+blast = ">=2.16.0,<3"
