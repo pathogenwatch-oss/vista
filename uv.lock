@@ -321,7 +321,7 @@ wheels = [
 
 [[package]]
 name = "vista"
-version = "2.0.1"
+version = "3.0.1"
 source = { editable = "." }
 dependencies = [
     { name = "biopython" },

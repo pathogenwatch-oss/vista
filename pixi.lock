@@ -2021,13 +2021,13 @@ packages:
   timestamp: 1742727099393
 - pypi: ./
   name: vista
-  version: 2.0.1
-  sha256: 2fe8bb423cb8f486780bf8a64767e698543cfdb2fa176d35e467e5aa50ba5d57
+  version: 3.0.1
+  sha256: 61faa19fc0b3d6f5510d8be238bdcd0b4e260716f8521f16e8ba67de49493dd9
   requires_dist:
   - biopython>=1.86
   - toml>=0.10.2
   - typer>=0.20.0
-  requires_python: '>=3.13'
+  requires_python: '>=3.10'
   editable: true
 - conda: https://conda.anaconda.org/conda-forge/linux-64/wget-1.25.0-hc2d8bac_0.conda
   sha256: 229d3c4e842c05b8b8635d3c09b912c96888b9540aebebf082e47d5eeb857e97
