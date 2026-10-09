@@ -1,5 +1,7 @@
 # Vista
 
+[Change log](CHANGELOG.md) · [Evidence](EVIDENCE.md)
+
 ## Table of Contents
 
 - [About](#about)
@@ -14,7 +16,7 @@
 ## About
 
 Vista is a database and genome assembly FASTA search tool for identifying _Vibrio cholerae_ serotypes,
-along with identifying virulence genes and clusters. It also provides ctxB allele assignments and copy numbers.
+along with identifying virulence genes and clusters, including ctx toxin genes.
 
 This tool is currently under development by the [CGPS](https://www.pathogensurveillance.net/). Please open an issue or
 contact us via [email](mailto:pathogenwatch@cgps.group) if you would link to know more or contribute.
@@ -45,13 +47,13 @@ It is recommended to install either install it as a python package, as a Docker 
 
 ## Installation
 
-First clone this git repository. Note that a pre-compiled database is provided for easy installation and should work for
-most users. If you need to rebuild the databases see the [Building the databases](#building-the-database) section.
+First, clone this git repository. Note that a pre-compiled database is provided for easy installation and should work
+for most users. If you need to rebuild the databases, see the [Building the databases](#building-the-database) section.
 
 - `pixi` ensures a compatible version of BLAST will be installed along with python and all other required packages.
 - `uv` will automatically install python and packages.
-- `pip` Provided you have compatible python and BLAST versions installed to your system vista can be installed as system
-  executable using pip.
+- `pip` Provided you have compatible python and BLAST versions installed to your system, vista can be installed as a
+  system executable using pip.
 - `Docker` can be used to create a portable versioned container.
 
 ```bash
@@ -63,7 +65,7 @@ Then follow the most appropriate instructions for installation or running.
 
 ### Python/Pip
 
-Running vista directly requires also installing required python packages so it is recommended to install it using pip.
+Running vista directly requires also installing required python packages, so it is recommended to install it using pip.
 
 ```bash
 pip install . --no-cache-dir
@@ -73,7 +75,7 @@ vista search --help
 
 ### Pixi
 
-Vista can be run with zero installation other than pixi with:
+Vista can be run with zero installation using pixi:
 
 ```bash
 cd vista
@@ -136,20 +138,26 @@ See options with `vista build --help`.
 ## Output description
 
 ### Output field descriptions
-The output JSON contains the following main keys:
-- `serogroup`: The predicted Vibrio cholerae serogroup (e.g., "O1", "O139", "Non-O1/O139").
-- `serogroupMarkers`: A list of objects, one for each serogroup marker gene searched. Each object includes the gene name, the serogroup it's associated with, and a list of any matches found in the query genome.
-- `virulenceGenes`: A list of objects, one for each virulence gene found.
-  - name: The name of the virulence gene.
-  - type: The functional category of the gene (e.g., "Toxin", "Adhesion").
-  - status: The presence status ("Present", "Incomplete", or "Absent").
-  - matches: A list of alignments found for that gene. Each match includes location details, identity, and whether the match is complete or disrupted.
-- `virulenceClusters`: A list of objects representing virulence-associated gene clusters (e.g., TCP cluster).
-  - name: The name of the cluster.
-  - genes: A list of all genes that are members of this cluster.
-  - present/missing/incomplete: Lists of genes in the cluster categorized by their presence status.
-  - status: An overall status for the cluster ("Present", "Incomplete", or "Absent") based on the presence of its member genes.
 
+- `serogroup`: The predicted _Vibrio cholerae_ serogroup (for example, `O1`, `O139`, or
+  `non-O1/O139`).
+- `serogroupMarkers`: The list of searched markers, showing their names, the associated serogroup and the list of matches to the
+  query genome.
+- `virulenceGenes`: The list of virulence genes, with the following fields:
+    - name: The name of the virulence gene.
+    - type: The functional category of the gene (e.g. "Toxin", "Adhesion").
+    - verified: Whether virulence impact has been experimentally verified in a mammalian host.
+    - status: The presence status (`Present`, `Incomplete`, or `Not found`).
+    - matches: A list of alignments found for that gene. Each match includes location details, identity, and whether the
+      match is complete or disrupted.
+- `virulenceClusters`: A list of objects representing virulence-associated gene clusters.
+    - name: The name of the cluster.
+    - genes: A list of all genes that are members of this cluster.
+    - verified: Whether virulence impact has been experimentally verified in a mammalian host for at least one member of
+      the cluster.
+    - present/missing/incomplete: Lists of genes in the cluster categorised by their presence status.
+    - status: An overall status for the cluster (`Present`, `Incomplete`, or `Not found`) based on the presence of its
+      member genes.
 
 ### Example output
 
@@ -159,10 +167,12 @@ The output JSON contains the following main keys:
     {
       "name": "ctxA",
       "type": "Toxin",
+      "verified": "Yes",
       "status": "Present",
       "matches": [
         {
-          "contigId": ".CNRVC970056_CATTTT_L002.23",
+          "queryId": "ctxA",
+          "contigId": "contig_1",
           "queryStart": 3385,
           "queryEnd": 4161,
           "refStart": 1,
@@ -179,61 +189,75 @@ The output JSON contains the following main keys:
   ],
   "virulenceClusters": [
     {
-      "name": "TCP cluster",
-      "type": "colonisation",
+      "name": "Cqs quorum sensing cluster",
+      "type": "Quorum sensing",
+      "verified": "No",
       "genes": [
-        "tcpA",
-        "tcpB",
-        "tcpC",
-        "tcpD",
-        "tcpE",
-        "tcpF",
-        "tcpH",
-        "tcpI",
-        "tcpJ",
-        "tcpN",
-        "tcpQ",
-        "tcpR",
-        "tcpS",
-        "tcpT"
+        "cqsS",
+        "cqsA"
       ],
-      "id": "tcp",
-      "matches": {},
+      "id": "cqs",
+      "matches": {
+        "cqsS": {
+          "status": "Present",
+          "matches": [
+            {
+              "queryId": "cqsS",
+              "contigId": "contig_2",
+              "queryStart": 1,
+              "queryEnd": 2000,
+              "refStart": 1,
+              "refEnd": 2000,
+              "frame": 1,
+              "isForward": true,
+              "isComplete": true,
+              "isDisrupted": false,
+              "isExact": true,
+              "identity": 100.0
+            }
+          ]
+        },
+        "cqsA": {
+          "status": "Not found",
+          "matches": []
+        }
+      },
       "present": [
-        "tcpA",
-        "tcpB",
-        "tcpC",
-        "tcpD",
-        "tcpE",
-        "tcpF",
-        "tcpH",
-        "tcpI",
-        "tcpJ",
-        "tcpN",
-        "tcpQ",
-        "tcpR",
-        "tcpS",
-        "tcpT"
+        "cqsS"
       ],
-      "missing": [],
+      "missing": [
+        "cqsA"
+      ],
       "incomplete": [],
-      "status": "Present"
+      "status": "Incomplete"
     }
   ],
   "serogroup": "O1",
   "serogroupMarkers": [
     {
-      "gene": "rfbV",
-      "name": "O1",
+      "name": "rfbV",
+      "type": "O1",
       "matches": [
-        "..."
+        {
+          "queryId": "rfbV",
+          "contigId": "contig_3",
+          "queryStart": 3385,
+          "queryEnd": 4161,
+          "refStart": 1,
+          "refEnd": 777,
+          "frame": 1,
+          "isForward": true,
+          "isComplete": true,
+          "isDisrupted": false,
+          "isExact": true,
+          "identity": 100.0
+        }
       ]
     },
     {
-      "gene": "wbfZ",
-      "name": "O139",
-      "matches": [
-      ]
+      "name": "wbfZ",
+      "type": "O139",
+      "matches": []
     }
   ]
 }

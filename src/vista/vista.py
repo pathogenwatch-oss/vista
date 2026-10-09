@@ -20,6 +20,21 @@ VIRULENCE_SETS = "virulenceClusters"
 app = typer.Typer()
 
 
+def search_parallelism(cpus: int, library_count: int) -> tuple[int, int]:
+    workers = min(cpus, library_count)
+    return workers, max(1, cpus // workers)
+
+
+def package_resource_path(resource_name: str) -> Path:
+    resource = resources.files("vista").joinpath(resource_name)
+    if isinstance(resource, Path):
+        return resource
+    raise RuntimeError(
+        "VISTA resources must be installed as filesystem files; "
+        "archive-based package resources cannot be used for BLAST databases."
+    )
+
+
 @app.command()
 def search(
     query_fasta: Annotated[
@@ -67,27 +82,29 @@ def search(
         if Path("pyproject.toml").exists():
             metadata_toml = Path("src/vista/config/metadata.toml")
         else:
-            metadata_toml = resources.files("vista").joinpath("config/metadata.toml")
+            metadata_toml = package_resource_path("config/metadata.toml")
 
     if resources_path is None:
         resources_path = get_resources_dir()
 
-    if not metadata_toml.exists():
+    if not metadata_toml.is_file():
         print(f"Error: metadata_toml '{metadata_toml}' does not exist.", file=sys.stderr)
         raise typer.Exit(code=1)
 
-    if not resources_path.exists():
+    if not resources_path.is_dir():
         print(f"Error: data_path '{resources_path}' does not exist.", file=sys.stderr)
         raise typer.Exit(code=1)
 
     metadata: dict[str, Any] = read_metadata(metadata_toml)
-    blast_defaults: dict[str, float | str] = metadata["defaults"]["blast"]
+    blast_defaults: dict[str, float ] = metadata["defaults"]["blast"]
     libraries: dict[str, Any] = metadata["libraries"]
     evalue: float = blast_defaults["evalue"]
     coverage: float = blast_defaults["coverage"]
 
     # Submit blasts in parallel
     vista_result: dict[str, Any] = dict()
+    library_names = list(libraries.keys())
+    workers, blast_threads = search_parallelism(cpus, len(library_names))
     search_func = partial(
         library_search,
         libraries=libraries,
@@ -95,10 +112,10 @@ def search(
         evalue=evalue,
         coverage=coverage,
         query_fasta=query_fasta,
-        num_threads=cpus,
+        num_threads=blast_threads,
     )
-    with Pool(processes=cpus) as pool:
-        for library, result in pool.map(search_func, list(libraries.keys())):
+    with Pool(processes=workers) as pool:
+        for library, result in pool.map(search_func, library_names):
             vista_result = vista_result | result
 
     print(json.dumps(vista_result, default=lambda x: x.__dict__), file=sys.stdout)
@@ -131,22 +148,25 @@ def build(
 ) -> None:
     """Generates the required BLAST databases."""
     if data_path is None:
-        data_path = get_data_path(data_path)
+        data_path = get_data_path()
 
     if resource_dir is None:
         resource_dir = get_resources_dir()
 
-    if not data_path.exists():
+    if not data_path.is_dir():
         print(f"Error: data_path '{data_path}' does not exist.", file=sys.stderr)
         raise typer.Exit(code=1)
 
     if not resource_dir.exists():
         resource_dir.mkdir(parents=True, exist_ok=True)
+    elif not resource_dir.is_dir():
+        print(f"Error: output path '{resource_dir}' is not a directory.", file=sys.stderr)
+        raise typer.Exit(code=1)
 
     metadata: dict[str, Any] = read_metadata(data_path / "metadata.toml")
     libraries = metadata["libraries"]
 
-    # First build simple marker databases
+    # First, build simple marker databases
     for name in libraries.keys():
         if name != VIRULENCE_SETS:
             build_blastdb(
@@ -161,12 +181,12 @@ def build(
     build_blastdb(resource_dir, VIRULENCE_SETS)
 
 
-def get_data_path(data_path: Path) -> Path:
+def get_data_path() -> Path:
     # If running from source, use local paths, otherwise use package resources
     if Path("pyproject.toml").exists():
         data_path = Path("src/vista/config")
     else:
-        data_path = resources.files("vista").joinpath("config")
+        data_path = package_resource_path("config")
     return data_path
 
 
@@ -174,7 +194,7 @@ def get_resources_dir() -> Path:
     if Path("pyproject.toml").exists():
         resource_dir = Path("src/vista/resources")
     else:
-        resource_dir = resources.files("vista").joinpath("resources")
+        resource_dir = package_resource_path("resources")
     return resource_dir
 
 

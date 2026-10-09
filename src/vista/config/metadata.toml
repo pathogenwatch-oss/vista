@@ -13,45 +13,156 @@ genes = [
 # 80% identity
 [libraries.virulenceGenes]
 genes = [
-    { name = "ace", type = "Toxin" },
-    { name = "acfA", type = "Colonisation" },
-    { name = "acfB", type = "Colonisation" },
-    { name = "acfC", type = "Colonisation" },
-    { name = "acfD", type = "Colonisation" },
-    { name = "chxA", type = "Toxin" },
-    { name = "ctxA", type = "Toxin" },
-    { name = "ctxB", type = "Toxin" },
-    { name = "hapA", type = "Haemagglutinin" },
-    { name = "hlyA", type = "Haemolysin" },
-    { name = "makA", type = "Toxin" },
-    { name = "nanH", type = "Neuraminidase" },
-    { name = "ompU", type = "Adhesion" },
-    { name = "rpoS", type = "Fitness" },
-    { name = "stn", type = "Toxin" },
-    { name = "tagA", type = "Mucinase" },
-    { name = "toxR", type = "Regulator" },
-    { name = "vasX", type = "Toxin" },
-    { name = "zot", type = "Toxin" },
+    { name = "als", type = "Acid tolerance response", verified = "Yes" },
+    { name = "aphA", type = "Quorum sensing/regulator", verified = "Yes" },
+    { name = "aphB", type = "Quorum sensing/regulator", verified = "Yes" },
+    { name = "bap1", type = "Biofilm/adhesion", verified = "No" },
+    { name = "chxA", type = "Toxin", verified = "Yes" },
+    { name = "ctxA", type = "Toxin", verified = "Yes" },
+    { name = "ctxB", type = "Toxin", verified = "Yes" },
+    { name = "frhA", type = "Haemagglutinin", verified = "Yes" },
+    { name = "gbpA", type = "Adhesion", verified = "Yes" },
+    { name = "hapA", type = "Haemagglutinin", verified = "Yes" },
+    { name = "hapR", type = "Quorum sensing/regulator", verified = "No" },
+    { name = "hfq", type = "Regulator", verified = "Yes" },
+    { name = "hlyA", type = "Haemolysin", verified = "Yes" },
+    { name = "hlyU", type = "Haemolysin regulator", verified = "Yes" },
+    { name = "luxS", type = "Quorom sensing/regulator", verified = "No" },
+    { name = "makA", type = "Toxin", verified = "No" },
+    { name = "mam7", type = "Adhesion", verified = "No" },
+    { name = "mfrhA", type = "Haemagglutinin", verified = "Yes" },
+    { name = "nanH", type = "Neuraminidase", verified = "Yes" },
+    { name = "ompU", type = "Adhesion", verified = "Yes" },
+    { name = "ompT", type = "Outer membrane porin", verified = "No" },
+    { name = "prtV", type = "Quorum sensing/regulator", verified = "No" },
+    { name = "rpoN", type = "Fitness", verified = "Yes" },
+    { name = "rpoS", type = "Fitness", verified = "Yes" },
+    { name = "stn", type = "Toxin", verified = "Yes" },
+    { name = "tdh (dth)", type = "Haemolysin", verified = "No" },
+    { name = "tlh", type = "Haemolysin", verified = "No" },
+    { name = "toxR", type = "Regulator", verified = "Yes" },
+    { name = "vqmA", type = "Quorum sensing/regulator", verified = "No" },
+    { name = "wbfZ", type = "Capsule biosynthesis (O139)", verified = "No" },
 ]
 
 # Virulence
 [libraries.virulenceClusters]
-[libraries.virulenceClusters.tcp]
-name = "TCP cluster"
-type = "colonisation"
-genes = ["tcpA", "tcpB", "tcpC", "tcpD", "tcpE", "tcpF", "tcpH", "tcpI", "tcpJ", "tcpN", "tcpQ", "tcpR", "tcpS", "tcpT"]
+[libraries.virulenceClusters.ctx]
+name = "CTX prophage region"
+type = "Toxin"
+verified = "Yes"
+genes = ["rstC", "rstB1", "rstA1", "rstR1", "ctxB", "ctxA", "zot", "ace", "orfU", "cep", "rstB2", "rstA2", "rstR2"]
 
-[libraries.virulenceClusters.lux]
-name = "Lux Operon"
-type = "quorum sensing"
-genes = ["luxO", "luxP", "luxQ", "luxS", "luxU"]
+[libraries.virulenceClusters.vpi1]
+name = "VPI-1 genomic island"
+type = "Colonisation"
+verified = "Yes"
+genes = ["aldA", "tagA", "mop", "tagD", "tcpI", "tcpP", "tcpH", "tcpA", "tcpB", "tcpQ", "tcpC", "tcpR", "tcpD", "tcpS", "tcpT", "tcpE", "tcpF", "toxT", "tcpJ", "acfB", "acfC", "tagE", "acfA", "acfD"]
+
+[libraries.virulenceClusters.lux1]
+name = "Lux operon cluster 1"
+type = "Quorum sensing"
+verified = "Yes"
+genes = ["luxO", "luxU"]
+
+[libraries.virulenceClusters.lux2]
+name = "Lux operon cluster 2"
+type = "Quorum sensing"
+verified = "No"
+genes = ["luxQ", "luxP"]
+
+[libraries.virulenceClusters.cqs]
+name = "Cqs quorum sensing cluster"
+type = "Quorum sensing"
+verified = "No"
+genes = ["cqsS", "cqsA"]
 
 [libraries.virulenceClusters.rtx]
 name = "RTX Toxin Operon"
 type = "Toxin"
-genes = ["rtxA", "rtxB", "rtxC", "rtxD"]
+verified = "Yes"
+genes = ["rtxD", "rtxB", "rtxC", "rtxA"]
 
 [libraries.virulenceClusters.msha]
 name = "MSHA Pilus"
-type = "adhesion"
-genes = ["MshA", "MshB", "MshC", "MshD", "MshE", "MshF", "MshG", "MshH", "MshI", "MshJ", "MshK", "MshM", "MshN"]
+type = "Adhesion"
+verified = "No"
+genes = ["MshH", "MshI", "MshJ", "MshK", "MshL", "MshM", "MshN", "MshE", "MshG", "MshF", "MshB", "MshA", "MshC", "MshD"]
+
+[libraries.virulenceClusters.t3ss2_alpha]
+name = "Type III secretion system T3SS2-alpha cluster"
+type = "Type III secretion system"
+verified = "Yes"
+genes = ["vopE", "vopX", "vcsN2", "vcsC2", "vopH", "vopA", "vcsV2", "vopM", "vopI", "vspD", "vopW", "vcsJ2", "vopF", "vopG", "trh"]
+
+[libraries.virulenceClusters.t3ss2_beta]
+name = "Type III secretion system T3SS2-beta cluster"
+type = "Type III secretion system"
+verified = "No"
+genes = ["ospB", "SYZ81588.1", "SYZ81589.1", "SYZ81590.1", "SYZ81591.1", "vscS2", "SYZ81593.1", "SYZ81594.1", "vscN2_NCTC_30", "vcsC2_NCTC_30", "SYZ81597.1", "vscT2", "SYZ81599.1", "SYZ81600.1", "SYZ81601.1", "vscQ2", "SYZ81603.1", "SYZ81604.1", "SYZ81605.1", "SYZ81606.1", "vscU2", "vcsV2_NCTC_30", "SYZ81609.1", "vsaC", "SYZ81611.1", "SYZ81612.1", "SYZ81613.1", "SYZ81614.1", "vopD2", "vspD_NCTC_30", "SYZ81617.1", "SYZ81618.1", "SYZ81619.1", "SYZ81620.1", "yscI/hrpB", "SYZ81622.1", "vopL", "SYZ81625.1"]
+
+[libraries.virulenceClusters.t6ss_auxiliary1]
+name = "Type VI secretion system auxiliary cluster 1"
+type = "Type VI secretion system"
+verified = "Yes"
+genes = ["hcp1", "vgrG1", "tseL", "tsiV1"]
+
+[libraries.virulenceClusters.t6ss_auxiliary2]
+name = "Type VI secretion system auxiliary cluster 2"
+type = "Type VI secretion system"
+verified = "Yes"
+genes = ["hcp2", "vgrG2", "vasX", "tsiV2"]
+
+[libraries.virulenceClusters.t6ss_auxiliary3]
+name = "Type VI secretion system auxiliary cluster 3"
+type = "Type VI secretion system"
+verified = "No"
+genes = ["tseH", "tsiH"]
+
+[libraries.virulenceClusters.t6ss_main]
+name = "Type VI secretion system main cluster"
+type = "Type VI secretion system"
+verified = "Yes"
+genes = ["vasH", "vgrG3", "tsiV3"]
+
+[libraries.virulenceClusters.flagellar1]
+name = "Flagellar cluster 1"
+type = "Flagella"
+verified = "Yes"
+genes = ["motA", "motB"]
+
+[libraries.virulenceClusters.flagellar2]
+name = "Flagellar cluster 2"
+type = "Flagella regulator"
+verified = "Yes"
+genes = ["fliA", "flhA"]
+
+[libraries.virulenceClusters.flagellar3]
+name = "Flagellar cluster 3"
+type = "Flagella"
+verified = "Yes"
+genes = ["flhB", "fliE", "flrB", "flrC", "flrA", "flaB", "flaD"]
+
+[libraries.virulenceClusters.flagellar4]
+name = "Flagellar cluster 4"
+type = "Flagella"
+verified = "Yes"
+genes = ["flaC", "flaA", "flgK", "flgJ", "flgD", "flgM", "flgN", "flgP"]
+
+[libraries.virulenceClusters.vps]
+name = "Vibrio polysaccharide (VPS) cluster"
+type = "Biofilm"
+verified = "Yes"
+genes = ["vpsU", "vpsA", "vpsB", "vpsC", "vpsD", "vpsE", "vpsF", "vpsG", "vpsH", "vpsI", "vpsJ", "vpsK", "rbmA", "rbmC", "rbmF", "vpsL", "vpsM", "vpsN", "vpsO", "vpsP", "vpsQ"]
+
+[libraries.virulenceClusters.o_antigen]
+name = "O-antigen locus"
+type = "LPS core oligosaccharide synthesis"
+verified = "Yes"
+genes = ["wavB", "waaL", "rfbA", "rfbB", "gmd", "rfbL", "rfbN", "rfbV", "wbeW"]
+
+[libraries.virulenceClusters.t2ss]
+name = "Type II secretion system cluster"
+type = "Type II secretion system"
+verified = "Yes"
+genes = ["epsN", "epsM", "epsL", "epsK", "epsJ", "epsI", "epsH", "epsG", "epsF", "epsE", "epsD", "epsC"]

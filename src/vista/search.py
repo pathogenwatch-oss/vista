@@ -144,8 +144,9 @@ def classify_matches(
             query_seq = (
                 hsp.query if is_forward else str(Seq(hsp.query).reverse_complement())
             )
+            coding_frame = ((3 - ((ref_start - 1) % 3)) % 3) + 1
             is_disrupted = find_frameshift(query_seq, hsp.sbjct) or find_premature_stop(
-                query_seq, hsp.frame[0], ref_end < ref_length
+                query_seq, coding_frame, ref_end == ref_length
             )
             percent_identity = round(
                 (float(hsp.identities) / float(ref_length)) * 100, 2
@@ -215,6 +216,9 @@ def serogroup_assignment(
         else:
             marker["matches"] = []
         type_markers.append(marker)
+
+    if not types:
+        types = ["non-O1/O139"]
 
     tag = ";".join(types)
     return {"serogroup": tag, "serogroupMarkers": type_markers}

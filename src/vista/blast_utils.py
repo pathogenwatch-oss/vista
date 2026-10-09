@@ -1,101 +1,92 @@
-import gzip
-import os
 import re
 import subprocess
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
-import typer
 from Bio.Seq import Seq
 
-indel_finder = re.compile(r"\w-+\w")
+indel_finder = re.compile(r"-+")
 
 
-def overlaps(coords1: tuple, coords2: tuple, threshold: int) -> bool:
-    return min(coords1[1], coords2[1]) - max(coords1[0], coords2[0]) >= threshold
+def overlaps(
+    coords1: tuple[int, int], coords2: tuple[int, int], threshold: int
+) -> bool:
+    return min(coords1[1], coords2[1]) - max(coords1[0], coords2[0]) + 1 >= threshold
 
 
 def find_frameshift(query: str, subject: str) -> bool:
-    insert_matches = [
-        insert for insert in indel_finder.findall(query) if len(insert) % 3 != 0
-    ]
-    if insert_matches:
-        return True
-    deletion_matches = [
-        deletion for deletion in indel_finder.findall(subject) if len(deletion) % 3 != 0
-    ]
-    return bool(deletion_matches)
+    return any(
+        len(indel) % 3 != 0
+        for aligned_sequence in (query, subject)
+        for indel in indel_finder.findall(aligned_sequence)
+    )
 
 
 def find_premature_stop(dna: str, frame: int, includes_end: bool) -> bool:
     dna = dna.replace("-", "")[frame - 1 :]
-    end_offset = (len(dna) % 3) * -1
-    if end_offset != 0:
+    remainder = len(dna) % 3
+    if remainder:
         includes_end = False
-    dna = dna[0:end_offset]
+        dna = dna[:-remainder]
+    if not dna:
+        return False
     coding_seq = Seq(dna)
     translation = coding_seq.translate()
-    if translation.count("*") < 1:
-        return False
-    else:
-        end_check = 1 if includes_end else 0
-        return str(translation).index("*") < len(translation) - end_check
+    terminal_stop_offset = 1 if includes_end else 0
+    return "*" in translation[: len(translation) - terminal_stop_offset]
 
 
 def process_contig(
     contig_id: str, alignments: list[Any], lengths: dict[str, int], coverage: float
 ) -> dict[str, dict[str, Any]]:
     threshold = 60
-    excluded = set()
     contig_keep = defaultdict(dict)
 
+    def has_sufficient_coverage(alignment_hsp: Any, alignment_title: str) -> bool:
+        return reference_coverage(alignment_hsp, alignment_title) >= coverage
+
+    def reference_coverage(alignment_hsp: Any, alignment_title: str) -> float:
+        return (
+            abs(alignment_hsp.sbjct_end - alignment_hsp.sbjct_start) + 1
+        ) / lengths[alignment_title]
+
+    def quality(alignment_hsp: Any, alignment_title: str) -> tuple[float, float, float]:
+        return (
+            reference_coverage(alignment_hsp, alignment_title),
+            alignment_hsp.bits,
+            alignment_hsp.identities / alignment_hsp.align_length,
+        )
+
+    candidates = []
     for query_alignment in alignments:
         title = query_alignment.title.split(" ")[0]
-        selected = []
-
-        for hsp in query_alignment.hsps:
-            name = f"{title}_{hsp.query_start}"
-            if name in excluded:
+        for hsp_index, hsp in enumerate(query_alignment.hsps):
+            if not has_sufficient_coverage(hsp, title):
                 continue
+            candidates.append((title, hsp_index, hsp))
 
-            # Check for overlaps with all other HSPs
-            for test_alignment in alignments:
-                test_title = test_alignment.title.split(" ")[0]
-                for test_hsp in test_alignment.hsps:
-                    test_name = f"{test_title}_{test_hsp.query_start}"
+    selected = set()
+    selected_hsps = []
+    for title, hsp_index, candidate_hsp in sorted(
+        candidates, key=lambda candidate: quality(candidate[2], candidate[0]), reverse=True
+    ):
+        if any(
+            overlaps(
+                (candidate_hsp.query_start, candidate_hsp.query_end),
+                (selected_hsp.query_start, selected_hsp.query_end),
+                threshold,
+            )
+            for selected_hsp in selected_hsps
+        ):
+            continue
+        selected.add((title, hsp_index))
+        selected_hsps.append(candidate_hsp)
 
-                    if (
-                        test_name in excluded
-                        or name == test_name
-                        or (hsp.sbjct_end - hsp.sbjct_start + 1) / lengths[title]
-                        < coverage
-                    ):
-                        continue
-
-                    if overlaps(
-                        (hsp.query_start, hsp.query_end),
-                        (test_hsp.query_start, test_hsp.query_end),
-                        threshold,
-                    ):
-                        # Determine which HSP to exclude based on quality
-                        hsp_score = hsp.align_length - hsp.gaps
-                        test_score = test_hsp.align_length - test_hsp.gaps
-
-                        if hsp_score < test_score:
-                            excluded.add(test_name)
-                        elif hsp.identities >= test_hsp.identities:
-                            excluded.add(test_name)
-                        else:
-                            excluded.add(name)
-                            break
-
-            if name not in excluded:
-                selected.append(hsp)
-
-        if selected:
-            contig_keep[title][contig_id] = selected
+    for title, hsp_index, candidate_hsp in candidates:
+        if (title, hsp_index) in selected:
+            contig_keep[title].setdefault(contig_id, []).append(candidate_hsp)
 
     return contig_keep
 
@@ -109,23 +100,20 @@ def select_matches(
     for contig_search in record_list:
         if len(contig_search.alignments) == 0:
             continue
-        kept.update(
-            process_contig(
-                contig_search.query, contig_search.alignments, lengths, coverage
-            )
+        contig_matches = process_contig(
+            contig_search.query, contig_search.alignments, lengths, coverage
         )
+        for title, matches in contig_matches.items():
+            kept.setdefault(title, {}).update(matches)
     return kept
 
 
 def build_blastdb(
-    db_dir: Path | str,
+    db_dir: Path,
     name: str,
 ):
     fasta_path = db_dir / f"{name}.fasta.gz"
     db_path = db_dir / name
-    # with gzip.open(fasta_path, "wb") as fasta_fh:
-    #     for gene in genes:
-    #         fasta_fh.write(sequences[gene].format("fasta").encode("utf-8"))
 
     gunzip_proc = subprocess.Popen(["gunzip", "-c", fasta_path], stdout=subprocess.PIPE)
     makeblastdb_proc = subprocess.Popen(
